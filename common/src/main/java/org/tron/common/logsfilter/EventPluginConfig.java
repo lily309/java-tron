@@ -1,5 +1,6 @@
 package org.tron.common.logsfilter;
 
+import com.beust.jcommander.internal.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -51,6 +52,10 @@ public class EventPluginConfig {
   @Setter
   private List<TriggerConfig> triggerConfigList;
 
+  @Getter
+  @Setter
+  private List<String> justlendTokens;
+
   public EventPluginConfig() {
     pluginPath = "";
     serverAddress = "";
@@ -59,5 +64,6 @@ public class EventPluginConfig {
     bindPort = 0;
     sendQueueLength = 0;
     triggerConfigList = new ArrayList<>();
+    justlendTokens = Lists.newArrayList();
   }
 }

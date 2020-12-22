@@ -41,10 +41,12 @@ import org.tron.common.logsfilter.FilterQuery;
 import org.tron.common.logsfilter.capsule.BlockErasedTriggerCapsule;
 import org.tron.common.logsfilter.capsule.BlockLogTriggerCapsule;
 import org.tron.common.logsfilter.capsule.ContractTriggerCapsule;
+import org.tron.common.logsfilter.capsule.JustlendSolidityTrackerCapsule;
 import org.tron.common.logsfilter.capsule.ShieldedTRC20SolidityTrackerCapsule;
 import org.tron.common.logsfilter.capsule.ShieldedTRC20TrackerCapsule;
 import org.tron.common.logsfilter.capsule.SolidityTriggerCapsule;
 import org.tron.common.logsfilter.capsule.BalanceTrackerCapsule;
+import org.tron.common.logsfilter.capsule.TRC20SolidityTrackerCapsule;
 import org.tron.common.logsfilter.capsule.TransactionLogTriggerCapsule;
 import org.tron.common.logsfilter.capsule.TriggerCapsule;
 import org.tron.common.logsfilter.trigger.ContractEventTrigger;
@@ -996,11 +998,12 @@ public class Manager {
           applyBlock(newBlock);
           tmpSession.commit();
           // if event subscribe is enabled, post solidity trigger to queue
-          postSolidityTrigger(getDynamicPropertiesStore().getLatestSolidifiedBlockNum());
+//          postSolidityTrigger(getDynamicPropertiesStore().getLatestSolidifiedBlockNum());
           // if event subscribe is enabled, post block trigger to queue
-          postBlockTrigger(newBlock);
-          postBalanceTrigger(newBlock);
-          postBalanceSolidityTrigger(getDynamicPropertiesStore().getLatestSolidifiedBlockNum());
+//          postBlockTrigger(newBlock);
+//          postBalanceTrigger(newBlock);
+//          postBalanceSolidityTrigger(getDynamicPropertiesStore().getLatestSolidifiedBlockNum());
+          postJustlendTrc20SolidityTrigger(getDynamicPropertiesStore().getLatestSolidifiedBlockNum());
         } catch (Throwable throwable) {
           logger.error(throwable.getMessage(), throwable);
           khaosDb.removeBlk(block.getBlockId());
@@ -1663,6 +1666,24 @@ public class Manager {
         logger.error("", ex);
       }
     }
+  }
+
+  private void postJustlendTrc20SolidityTrigger(long latestSolidifiedBlockNum) {
+    if (eventPluginLoaded && EventPluginLoader.getInstance().isTrc20TrackerSolidityTriggerEnable()) {
+      try {
+        BlockCapsule solidityBlock = chainBaseManager.getBlockByNum(latestSolidifiedBlockNum);
+        if (Objects.nonNull(solidityBlock)) {
+          JustlendSolidityTrackerCapsule justlendSolidityTrackerCapsule = new JustlendSolidityTrackerCapsule(solidityBlock);
+          if (CollectionUtils.isEmpty(justlendSolidityTrackerCapsule.getJustlendTrackerTrigger().getAssetStatusList())) {
+            return;
+          }
+          justlendSolidityTrackerCapsule.processTrigger();
+        }
+      } catch (Exception e) {
+        logger.error("postTrc20SolidityTrigger error, ", e);
+      }
+    }
+
   }
 
 

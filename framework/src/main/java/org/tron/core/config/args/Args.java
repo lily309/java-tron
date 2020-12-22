@@ -868,6 +868,13 @@ public class Args extends CommonParameter {
       eventPluginConfig.setTriggerConfigList(triggerConfigList);
     }
 
+    if (config.hasPath(Constant.EVENT_SUBSCRIBE_JUSTLEND_TOKENS)) {
+      List<String> justlendTokens = config.getStringList(Constant.EVENT_SUBSCRIBE_JUSTLEND_TOKENS);
+      if (!CollectionUtils.isEmpty(justlendTokens)) {
+        eventPluginConfig.setJustlendTokens(justlendTokens);
+      }
+    }
+
     return eventPluginConfig;
   }
 

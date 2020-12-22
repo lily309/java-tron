@@ -14,6 +14,7 @@ import org.pf4j.DefaultPluginManager;
 import org.pf4j.ManifestPluginDescriptorFinder;
 import org.pf4j.PluginManager;
 import org.spongycastle.util.encoders.Hex;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.tron.common.logsfilter.nativequeue.NativeMessageQueue;
 import org.tron.common.logsfilter.trigger.*;
@@ -35,6 +36,8 @@ public class EventPluginLoader {
   private String dbConfig;
 
   private List<TriggerConfig> triggerConfigList;
+
+  private List<String> justlendTokens;
 
   private boolean blockLogTriggerEnable = false;
 
@@ -180,6 +183,11 @@ public class EventPluginLoader {
       return false;
     }
 
+    if (Objects.isNull(justlendTokens)) {
+      logger.error("justlend token list is null");
+      return false;
+    }
+
     triggerConfigList.forEach(triggerConfig -> {
       setSingleTriggerConfig(triggerConfig);
     });
@@ -214,6 +222,11 @@ public class EventPluginLoader {
     }
 
     this.triggerConfigList = config.getTriggerConfigList();
+
+    if (CollectionUtils.isEmpty(config.getJustlendTokens())) {
+      return false;
+    }
+    this.justlendTokens = config.getJustlendTokens();
 
     useNativeQueue = config.isUseNativeQueue();
 
@@ -337,7 +350,8 @@ public class EventPluginLoader {
         trc20TrackerSolidityTriggerEnable = false;
       }
       if (!useNativeQueue) {
-        setPluginTopic(Trigger.TRC20TRACKER_SOLIDITY_TRIGGER, triggerConfig.getTopic());
+//        setPluginTopic(Trigger.TRC20TRACKER_SOLIDITY_TRIGGER, triggerConfig.getTopic());
+        setPluginTopic(Trigger.TRC20TRACKER_TRIGGER, triggerConfig.getTopic());
       }
     } else if (EventPluginConfig.BALANCE_TRACKER
         .equalsIgnoreCase(triggerConfig.getTriggerName())) {
@@ -380,6 +394,10 @@ public class EventPluginLoader {
       eventListeners.forEach(listener ->
           listener.handleSolidityTrigger(toJsonString(trigger)));
     }
+  }
+
+  public synchronized List<String> getJustlendTokens() {
+    return justlendTokens;
   }
 
   public synchronized boolean isBlockLogTriggerEnable() {
@@ -558,6 +576,16 @@ public class EventPluginLoader {
 
 
   public void postTRC20TrackerTrigger(BalanceTrackerTrigger trigger) {
+    if (useNativeQueue) {
+      NativeMessageQueue.getInstance()
+          .publishTrigger(toJsonString(trigger), trigger.getTriggerName());
+    } else {
+      eventListeners.forEach(listener ->
+          listener.handleTRC20Event(toJsonString(trigger)));
+    }
+  }
+
+  public void postJustlendTrackerTrigger(JustlendTrackerTrigger trigger) {
     if (useNativeQueue) {
       NativeMessageQueue.getInstance()
           .publishTrigger(toJsonString(trigger), trigger.getTriggerName());
