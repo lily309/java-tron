@@ -1,7 +1,6 @@
 package org.tron.common.logsfilter.trigger;
 
 import com.beust.jcommander.internal.Lists;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -93,7 +92,7 @@ public class JustlendTrackerTrigger extends Trigger {
   }
 
 
-  public enum MiningType {
+  public enum MiningTypeEnum {
     DEPOSIT(1, "存款挖矿"),
     BORROW(2, "借款挖矿"),
     UNKNOWN(-1, "未知");
@@ -103,13 +102,13 @@ public class JustlendTrackerTrigger extends Trigger {
     @Getter
     private String desc;
 
-    MiningType(Integer type, String desc) {
+    MiningTypeEnum(Integer type, String desc) {
       this.type = type;
       this.desc = desc;
     }
 
-    public static MiningType getByType(Integer type) {
-      for (MiningType value : MiningType.values()) {
+    public static MiningTypeEnum getByType(Integer type) {
+      for (MiningTypeEnum value : MiningTypeEnum.values()) {
         if (value.type.equals(type)) {
           return value;
         }
