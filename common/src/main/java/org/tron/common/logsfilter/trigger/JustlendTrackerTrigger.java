@@ -28,6 +28,7 @@ public class JustlendTrackerTrigger extends Trigger {
 
   @Data
   public static class AssetStatusPojo {
+    private Integer miningType;
     private String accountAddress;
     private String tokenAddress;
     private String balance;
@@ -89,6 +90,33 @@ public class JustlendTrackerTrigger extends Trigger {
       }
       return null;
     }
+  }
+
+
+  public enum MiningType {
+    DEPOSIT(1, "存款挖矿"),
+    BORROW(2, "借款挖矿"),
+    UNKNOWN(-1, "未知");
+
+    @Getter
+    private Integer type;
+    @Getter
+    private String desc;
+
+    MiningType(Integer type, String desc) {
+      this.type = type;
+      this.desc = desc;
+    }
+
+    public static MiningType getByType(Integer type) {
+      for (MiningType value : MiningType.values()) {
+        if (value.type.equals(type)) {
+          return value;
+        }
+      }
+      return null;
+    }
+
   }
 
 }
