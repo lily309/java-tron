@@ -39,6 +39,7 @@ public class JustlendTrackerTrigger extends Trigger {
     TRANSFER("Transfer(address,address,uint256)", "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
     BORROW("Borrow(address,uint256,uint256,uint256,uint256)", "2dd79f4fccfd18c360ce7f9132f3621bf05eee18f995224badb32d17f172df73"),
     REPAY_BORROW("RepayBorrow(address,address,uint256,uint256,uint256,uint256)", "6fadbf7329d21f278e724fa0d4511001a158f2a97ee35c5bc4cf8b64417399ef"),
+    SNAPSHOT("SnapShot(address,uint256)", "b7a265ee24a245917823a466fcc8a6011cf216dd22b70a297bd9a26315a19ec6"),
     UNKNOWN("UNKNOWN()", "0c78932dd210147f42a4ec6c5a353697626c4043d49be5f063518e57f3399e61");
 
     @Getter
