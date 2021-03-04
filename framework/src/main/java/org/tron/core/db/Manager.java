@@ -1774,9 +1774,9 @@ public class Manager {
         BlockCapsule solidityBlock = chainBaseManager.getBlockByNum(latestSolidifiedBlockNum);
         if (Objects.nonNull(solidityBlock)) {
           JustlendSolidityTrackerCapsule justlendSolidityTrackerCapsule = new JustlendSolidityTrackerCapsule(solidityBlock);
-          if (CollectionUtils.isEmpty(justlendSolidityTrackerCapsule.getJustlendTrackerTrigger().getAssetStatusList())) {
-            return;
-          }
+//          if (CollectionUtils.isEmpty(justlendSolidityTrackerCapsule.getJustlendTrackerTrigger().getAssetStatusList())) {
+//            return;
+//          }
           justlendSolidityTrackerCapsule.processTrigger();
         }
       } catch (Exception e) {
