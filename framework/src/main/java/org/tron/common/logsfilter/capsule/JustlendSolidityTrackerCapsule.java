@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.spongycastle.util.Arrays;
 import org.springframework.util.CollectionUtils;
 import org.tron.common.logsfilter.EventPluginLoader;
 import org.tron.common.logsfilter.TRC20Utils;
@@ -61,6 +62,17 @@ public class JustlendSolidityTrackerCapsule extends TriggerCapsule {
       }
 
       switch (JustlendTrackerTrigger.HexTopicEnum.getBySignHash(topics.get(0))) {
+        // SnapShot(address indexed user, uint256 amount);
+        case SNAPSHOT:
+          if (topics.size() < 2) {
+            continue;
+          }
+
+          String accountAddress = StringUtil.encode58Check(TransactionTrace.convertToTronAddress(logInfo.getTopics().get(1).getLast20Bytes()));
+          BigInteger balance = TRC20Utils.hexStrToBigInteger(DataWord.getDataWord(ByteArray.fromHexString(logInfo.getHexData()), 0).toHexString());
+
+          addAssetStatusPojo(result, JustlendTrackerTrigger.MiningTypeEnum.DEPOSIT.getType(), accountAddress, tokenAddress, balance, null, null);
+          break;
         case TRANSFER:
           if (topics.size() < 3) {
             continue;
