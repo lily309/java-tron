@@ -1238,7 +1238,7 @@ public class Manager {
     }
     //set the sort order
     trxCap.setOrder(transactionInfo.getFee());
-    trxCap.setTrxTrace(null);
+//    trxCap.setTrxTrace(null);
     return transactionInfo.getInstance();
   }
 
