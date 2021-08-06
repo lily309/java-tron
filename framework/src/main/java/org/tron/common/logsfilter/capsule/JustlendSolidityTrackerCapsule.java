@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.spongycastle.util.Arrays;
 import org.springframework.util.CollectionUtils;
 import org.tron.common.logsfilter.EventPluginLoader;
 import org.tron.common.logsfilter.TRC20Utils;
