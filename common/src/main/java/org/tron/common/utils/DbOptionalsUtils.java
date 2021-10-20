@@ -10,7 +10,7 @@ public class DbOptionalsUtils {
   public static final int DEFAULT_BLOCK_SIZE = 4 * 1024;
   public static final int DEFAULT_WRITE_BUFFER_SIZE = 64 * 1024 * 1024;
   public static final long DEFAULT_CACHE_SIZE = 32 * 1024 * 1024L;
-  public static final int DEFAULT_MAX_OPEN_FILES = 5000;
+  public static final int DEFAULT_MAX_OPEN_FILES = 200;
 
   public static Options createDefaultDbOptions() {
     Options dbOptions = new Options();
