@@ -1273,12 +1273,16 @@ public class Manager {
               // if event subscribe is enabled, post solidity trigger to queue
 //              postSolidityTrigger(oldSolidNum,
 //                      getDynamicPropertiesStore().getLatestSolidifiedBlockNum());
-              postJustlendTrc20SolidityTrigger(getDynamicPropertiesStore().getLatestSolidifiedBlockNum());
+              try {
+                postJustlendTrc20SolidityTrigger(getDynamicPropertiesStore().getLatestSolidifiedBlockNum());
+              } catch (Exception ex){
+                logger.error("postJustlendTrc20SolidityTrigger error", ex);
+                // if exception, close self
+                ApplicationHandler.closeSelf();
+              }
             } catch (Throwable throwable) {
               logger.error(throwable.getMessage(), throwable);
               khaosDb.removeBlk(block.getBlockId());
-              // if exception, close self
-              ApplicationHandler.closeSelf();
               throw throwable;
             }
           }
