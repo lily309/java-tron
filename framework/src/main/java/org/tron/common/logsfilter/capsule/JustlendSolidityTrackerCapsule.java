@@ -56,13 +56,18 @@ public class JustlendSolidityTrackerCapsule extends TriggerCapsule {
       }
 
       String tokenAddress = StringUtil.encode58Check(TransactionTrace.convertToTronAddress(logInfo.getAddress()));
-      if (StringUtils.isEmpty(tokenAddress) || !EventPluginLoader.getInstance().getJustlendTokens().contains(tokenAddress)) {
+      boolean isRentMarket = EventPluginLoader.getInstance().getJustlendRentMarket().equals(tokenAddress)? true : false;
+      if (StringUtils.isEmpty(tokenAddress) || (!EventPluginLoader.getInstance().getJustlendTokens().contains(tokenAddress) &&  !isRentMarket)) {
         continue;
       }
+
 
       switch (JustlendTrackerTrigger.HexTopicEnum.getBySignHash(topics.get(0))) {
         // SnapShot(address indexed user, uint256 amount);
         case SNAPSHOT:
+          if (isRentMarket){
+            continue;
+          }
           if (topics.size() < 2) {
             continue;
           }
@@ -73,6 +78,9 @@ public class JustlendSolidityTrackerCapsule extends TriggerCapsule {
           addAssetStatusPojo(result, JustlendTrackerTrigger.MiningTypeEnum.DEPOSIT.getType(), accountAddress, tokenAddress, balance, null, null);
           break;
         case TRANSFER:
+          if (isRentMarket){
+            continue;
+          }
           if (topics.size() < 3) {
             continue;
           }
@@ -84,6 +92,9 @@ public class JustlendSolidityTrackerCapsule extends TriggerCapsule {
           addAssetStatusPojo(result, JustlendTrackerTrigger.MiningTypeEnum.DEPOSIT.getType(),  toAddress, tokenAddress, TRC20Utils.getTRC20Balance(toAddress, tokenAddress, blockCapsule), null, null);
           break;
         case BORROW:
+          if (isRentMarket){
+            continue;
+          }
           //event Borrow(address borrower, uint borrowAmount, uint accountBorrows, uint totalBorrows, uint borrowIndex);
           String borrower = StringUtil.encode58Check(TransactionTrace.convertToTronAddress(DataWord.getDataWord(ByteArray.fromHexString(logInfo.getHexData()), 0).getLast20Bytes()));
           BigInteger accountBorrows = TRC20Utils.hexStrToBigInteger(DataWord.getDataWord(ByteArray.fromHexString(logInfo.getHexData()), 2).toHexString());
@@ -92,6 +103,9 @@ public class JustlendSolidityTrackerCapsule extends TriggerCapsule {
           addAssetStatusPojo(result, JustlendTrackerTrigger.MiningTypeEnum.BORROW.getType(),  borrower, tokenAddress, null, accountBorrows, totalBorrows);
           break;
         case REPAY_BORROW:
+          if (isRentMarket){
+            continue;
+          }
           //event RepayBorrow(address payer, address borrower, uint repayAmount, uint accountBorrows, uint totalBorrows, uint borrowIndex);
           String borrowerAddress = StringUtil.encode58Check(TransactionTrace.convertToTronAddress(DataWord.getDataWord(ByteArray.fromHexString(logInfo.getHexData()), 1).getLast20Bytes()));
           BigInteger accountTotalBorrows = TRC20Utils.hexStrToBigInteger(DataWord.getDataWord(ByteArray.fromHexString(logInfo.getHexData()), 3).toHexString());
@@ -99,7 +113,43 @@ public class JustlendSolidityTrackerCapsule extends TriggerCapsule {
 
           addAssetStatusPojo(result, JustlendTrackerTrigger.MiningTypeEnum.BORROW.getType(),  borrowerAddress, tokenAddress, null, accountTotalBorrows, marketTotalBorrows);
           break;
+        case RENT_RESOURCE:
+          if (!isRentMarket){
+            continue;
+          }
+          //event RentResource(address indexed renter, address indexed receiver, uint256 addedAmount, uint256 resourceType, uint256 addedSecurityDeposit, uint256 amount, uint256 securityDeposit,uint256 rentIndex)
+          String rentRentAddress = StringUtil.encode58Check(TransactionTrace.convertToTronAddress(logInfo.getTopics().get(1).getLast20Bytes()));
+          String rentReceiverAddress = StringUtil.encode58Check(TransactionTrace.convertToTronAddress(logInfo.getTopics().get(2).getLast20Bytes()));
+          BigInteger rentResourceType = TRC20Utils.hexStrToBigInteger(DataWord.getDataWord(ByteArray.fromHexString(logInfo.getHexData()), 1).toHexString());
+          BigInteger rentAmount = TRC20Utils.hexStrToBigInteger(DataWord.getDataWord(ByteArray.fromHexString(logInfo.getHexData()), 3).toHexString());
+          String rentOrder = JustlendTrackerTrigger.contactOrder(rentRentAddress, rentReceiverAddress, rentResourceType.toString());
+          addAssetStatusPojo(result, JustlendTrackerTrigger.MiningTypeEnum.DEPOSIT.getType(), rentOrder, tokenAddress, rentAmount, null, null);
+          break;
+        case RETURN_RESOURCE:
+          if (!isRentMarket){
+            continue;
+          }
+          //event ReturnResource(address indexed renter,address indexed receiver,uint256 subedAmount,uint256 resourceType,uint256 usageRental,uint256 subedSecurityDeposit,uint256 amount,uint256 securityDeposit,uint256 rentIndex);
+          String returnRentAddress = StringUtil.encode58Check(TransactionTrace.convertToTronAddress(logInfo.getTopics().get(1).getLast20Bytes()));
+          String returnReceiverAddress = StringUtil.encode58Check(TransactionTrace.convertToTronAddress(logInfo.getTopics().get(2).getLast20Bytes()));
+          BigInteger returnResourceType = TRC20Utils.hexStrToBigInteger(DataWord.getDataWord(ByteArray.fromHexString(logInfo.getHexData()), 1).toHexString());
+          BigInteger returnAmount = TRC20Utils.hexStrToBigInteger(DataWord.getDataWord(ByteArray.fromHexString(logInfo.getHexData()), 4).toHexString());
+          String returnOrder = JustlendTrackerTrigger.contactOrder(returnRentAddress, returnReceiverAddress, returnResourceType.toString());
+          addAssetStatusPojo(result, JustlendTrackerTrigger.MiningTypeEnum.DEPOSIT.getType(), returnOrder, tokenAddress, returnAmount, null, null);
+          break;
+        case RENT_LIQUIDATE:
+          if (!isRentMarket){
+            continue;
+          }
+          //event Liquidate(address indexed liquidator,address indexed renter,address indexed receiver,uint256 amount,uint256 resourceType,uint256 usageRental,uint256 liquidateFee,uint256 sendBack);
+          String liquidateRentAddress = StringUtil.encode58Check(TransactionTrace.convertToTronAddress(logInfo.getTopics().get(2).getLast20Bytes()));
+          String liquidateReceiverAddress = StringUtil.encode58Check(TransactionTrace.convertToTronAddress(logInfo.getTopics().get(3).getLast20Bytes()));
+          BigInteger liquidateResourceType = TRC20Utils.hexStrToBigInteger(DataWord.getDataWord(ByteArray.fromHexString(logInfo.getHexData()), 1).toHexString());
+          String liquidateOrder = JustlendTrackerTrigger.contactOrder(liquidateRentAddress, liquidateReceiverAddress, liquidateResourceType.toString());
+          addAssetStatusPojo(result, JustlendTrackerTrigger.MiningTypeEnum.DEPOSIT.getType(), liquidateOrder, tokenAddress, new BigInteger("0"), null, null);
+          break;
       }
+
     }
 
     return result;
