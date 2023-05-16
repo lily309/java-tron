@@ -40,9 +40,9 @@ public class JustlendTrackerTrigger extends Trigger {
     BORROW("Borrow(address,uint256,uint256,uint256,uint256)", "2dd79f4fccfd18c360ce7f9132f3621bf05eee18f995224badb32d17f172df73"),
     REPAY_BORROW("RepayBorrow(address,address,uint256,uint256,uint256,uint256)", "6fadbf7329d21f278e724fa0d4511001a158f2a97ee35c5bc4cf8b64417399ef"),
     SNAPSHOT("SnapShot(address,uint256)", "b7a265ee24a245917823a466fcc8a6011cf216dd22b70a297bd9a26315a19ec6"),
-    RENT_RESOURCE("RentResource(address,address,uint256,uint256,uint256,uint256,uint256,uint256)", "0xcbf7e7bd355ef86ba2c3d4f8c101abbec40074070c31fcb142bd713cd5409158"),
-    RETURN_RESOURCE("ReturnResource(address,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)", "0xf7e21d5bf17851f93ab7bda7e390841620f59dfbe9d86add32824f33bd40d3f5"),
-    RENT_LIQUIDATE("Liquidate(address,address,address,uint256,uint256,uint256,uint256,uint256)", "0xb0dbe18c6ffdf0da655dd690e77211d379205c497be44c64447c3f5f021b5167"),
+    RENT_RESOURCE("RentResource(address,address,uint256,uint256,uint256,uint256,uint256,uint256)", "cbf7e7bd355ef86ba2c3d4f8c101abbec40074070c31fcb142bd713cd5409158"),
+    RETURN_RESOURCE("ReturnResource(address,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)", "f7e21d5bf17851f93ab7bda7e390841620f59dfbe9d86add32824f33bd40d3f5"),
+    RENT_LIQUIDATE("Liquidate(address,address,address,uint256,uint256,uint256,uint256,uint256)", "b0dbe18c6ffdf0da655dd690e77211d379205c497be44c64447c3f5f021b5167"),
     UNKNOWN("UNKNOWN()", "0c78932dd210147f42a4ec6c5a353697626c4043d49be5f063518e57f3399e61");
 
     @Getter
