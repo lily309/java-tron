@@ -56,6 +56,10 @@ public class EventPluginConfig {
   @Setter
   private List<String> justlendTokens;
 
+  @Getter
+  @Setter
+  private String justlendRentMarket;
+
   public EventPluginConfig() {
     pluginPath = "";
     serverAddress = "";
@@ -65,5 +69,6 @@ public class EventPluginConfig {
     sendQueueLength = 0;
     triggerConfigList = new ArrayList<>();
     justlendTokens = Lists.newArrayList();
+    justlendRentMarket = "";
   }
 }

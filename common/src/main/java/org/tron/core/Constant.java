@@ -277,6 +277,7 @@ public class Constant {
   public static final String EVENT_SUBSCRIBE_DB_CONFIG = "event.subscribe.dbconfig";
   public static final String EVENT_SUBSCRIBE_TOPICS = "event.subscribe.topics";
   public static final String EVENT_SUBSCRIBE_JUSTLEND_TOKENS = "event.subscribe.justlend.token.list";
+  public static final String EVENT_SUBSCRIBE_JUSTLEND_RENT_MARKET = "event.subscribe.justlend.rent.market";
   public static final String EVENT_SUBSCRIBE_FROM_BLOCK = "event.subscribe.filter.fromblock";
   public static final String EVENT_SUBSCRIBE_TO_BLOCK = "event.subscribe.filter.toblock";
   public static final String EVENT_SUBSCRIBE_CONTRACT_ADDRESS = "event.subscribe.filter.contractAddress";

@@ -1338,6 +1338,13 @@ public class Args extends CommonParameter {
       }
     }
 
+    if(config.hasPath(Constant.EVENT_SUBSCRIBE_JUSTLEND_RENT_MARKET)) {
+      String justlendRentMarket = config.getString(Constant.EVENT_SUBSCRIBE_JUSTLEND_RENT_MARKET);
+      if (StringUtils.isNotEmpty(justlendRentMarket)){
+        eventPluginConfig.setJustlendRentMarket(justlendRentMarket);
+      }
+    }
+
     return eventPluginConfig;
   }
 
