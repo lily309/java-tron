@@ -49,6 +49,8 @@ public class EventPluginLoader {
 
   private List<String> justlendTokens;
 
+  private String justlendRentMarket;
+
   private boolean blockLogTriggerEnable = false;
 
   private boolean blockLogTriggerSolidified = false;
@@ -209,6 +211,11 @@ public class EventPluginLoader {
       return false;
     }
 
+    if (org.apache.commons.lang3.StringUtils.isEmpty(justlendRentMarket)){
+      logger.error("justlend rentMarket is null");
+      return false;
+    }
+
     triggerConfigList.forEach(triggerConfig -> {
       setSingleTriggerConfig(triggerConfig);
     });
@@ -248,6 +255,7 @@ public class EventPluginLoader {
       return false;
     }
     this.justlendTokens = config.getJustlendTokens();
+    this.justlendRentMarket = config.getJustlendRentMarket();
 
     useNativeQueue = config.isUseNativeQueue();
 
@@ -440,6 +448,11 @@ public class EventPluginLoader {
   public synchronized List<String> getJustlendTokens() {
     return justlendTokens;
   }
+
+  public synchronized String getJustlendRentMarket() {
+    return justlendRentMarket;
+  }
+
 
   public synchronized boolean isBlockLogTriggerEnable() {
     return blockLogTriggerEnable;
