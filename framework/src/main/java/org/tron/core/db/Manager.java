@@ -1118,6 +1118,7 @@ public class Manager {
         try (ISession tmpSession = revokingStore.buildSession()) {
           applyBlock(item.getBlk().setSwitch(true));
           tmpSession.commit();
+          postBlockContractLogTrigger(item.getBlk());
         } catch (AccountResourceInsufficientException
             | ValidateSignatureException
             | ContractValidateException
@@ -1156,6 +1157,7 @@ public class Manager {
               try (ISession tmpSession = revokingStore.buildSession()) {
                 applyBlock(khaosBlock.getBlk().setSwitch(true));
                 tmpSession.commit();
+                postBlockContractLogTrigger(khaosBlock.getBlk());
               } catch (AccountResourceInsufficientException
                   | ValidateSignatureException
                   | ContractValidateException
