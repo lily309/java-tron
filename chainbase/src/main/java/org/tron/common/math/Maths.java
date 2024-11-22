@@ -5,6 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.tron.core.store.DynamicPropertiesStore;
 
+/**
+ * This class is deprecated and should not be used in new code,
+ * for cross-platform consistency, please use {@link StrictMathWrapper} instead,
+ * especially for floating-point calculations.
+ */
+@Deprecated
 @Component
 @Slf4j(topic = "math")
 public class Maths {
