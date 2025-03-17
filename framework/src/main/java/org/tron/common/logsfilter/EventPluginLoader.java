@@ -29,6 +29,7 @@ import org.tron.common.logsfilter.trigger.ShieldedTRC20TrackerTrigger;
 import org.tron.common.logsfilter.trigger.SolidityTrigger;
 import org.tron.common.logsfilter.trigger.TransactionLogTrigger;
 import org.tron.common.logsfilter.trigger.Trigger;
+import org.tron.common.utils.JsonUtil;
 
 @Slf4j
 public class EventPluginLoader {
@@ -46,6 +47,10 @@ public class EventPluginLoader {
   private String dbConfig;
 
   private List<TriggerConfig> triggerConfigList;
+
+  private int version = 0;
+
+  private long startSyncBlockNum = 0;
 
   private List<String> justlendTokens;
 
@@ -249,6 +254,10 @@ public class EventPluginLoader {
       return false;
     }
 
+    this.version = config.getVersion();
+
+    this.startSyncBlockNum = config.getStartSyncBlockNum();
+
     this.triggerConfigList = config.getTriggerConfigList();
 
     if (CollectionUtils.isEmpty(config.getJustlendTokens())) {
@@ -443,6 +452,14 @@ public class EventPluginLoader {
       eventListeners.forEach(listener ->
           listener.handleSolidityTrigger(toJsonString(trigger)));
     }
+  }
+
+  public synchronized int getVersion() {
+    return version;
+  }
+
+  public synchronized long getStartSyncBlockNum() {
+    return startSyncBlockNum;
   }
 
   public synchronized List<String> getJustlendTokens() {
