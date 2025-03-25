@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Hex;
 import org.pf4j.CompoundPluginDescriptorFinder;
@@ -37,6 +39,8 @@ import org.tron.core.config.args.Args;
 public class EventPluginLoader {
 
   private static EventPluginLoader instance;
+
+  private long MAX_PENDING_SIZE = 50000;
 
   private PluginManager pluginManager = null;
 
@@ -84,6 +88,7 @@ public class EventPluginLoader {
 
   private Map<String, Map<String, List<FilterQuery>>> filterQueryMap = null;
 
+  @Getter
   private boolean useNativeQueue = false;
 
   private long filterQueryLastUpdate = 0;
@@ -602,6 +607,21 @@ public class EventPluginLoader {
       eventListeners.forEach(listener ->
           listener.handleBlockContractLogTrigger(toJsonString(trigger)));
     }
+  }
+
+  public boolean isBusy() {
+    if (useNativeQueue) {
+      return false;
+    }
+    int queueSize = 0;
+    for (IPluginEventListener listener : eventListeners) {
+      try {
+        queueSize += listener.getPendingSize();
+      } catch (AbstractMethodError error) {
+        break;
+      }
+    }
+    return queueSize >= MAX_PENDING_SIZE;
   }
 
   private String toJsonString(Object data) {
