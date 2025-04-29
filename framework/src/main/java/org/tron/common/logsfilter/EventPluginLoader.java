@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Hex;
 import org.pf4j.CompoundPluginDescriptorFinder;
@@ -38,6 +40,8 @@ public class EventPluginLoader {
 
   private static EventPluginLoader instance;
 
+  private long MAX_PENDING_SIZE = 50000;
+
   private PluginManager pluginManager = null;
 
   private List<IPluginEventListener> eventListeners;
@@ -49,6 +53,10 @@ public class EventPluginLoader {
   private String dbConfig;
 
   private List<TriggerConfig> triggerConfigList;
+
+  private int version = 0;
+
+  private long startSyncBlockNum = 0;
 
   private boolean blockLogTriggerEnable = false;
 
@@ -80,6 +88,7 @@ public class EventPluginLoader {
 
   private Map<String, Map<String, List<FilterQuery>>> filterQueryMap = null;
 
+  @Getter
   private boolean useNativeQueue = false;
 
   private long filterQueryLastUpdate = 0;
@@ -262,6 +271,10 @@ public class EventPluginLoader {
       return false;
     }
 
+    this.version = config.getVersion();
+
+    this.startSyncBlockNum = config.getStartSyncBlockNum();
+
     this.triggerConfigList = config.getTriggerConfigList();
 
     useNativeQueue = config.isUseNativeQueue();
@@ -409,6 +422,14 @@ public class EventPluginLoader {
       eventListeners.forEach(listener ->
           listener.handleSolidityTrigger(toJsonString(trigger)));
     }
+  }
+
+  public synchronized int getVersion() {
+    return version;
+  }
+
+  public synchronized long getStartSyncBlockNum() {
+    return startSyncBlockNum;
   }
 
   public synchronized boolean isBlockLogTriggerEnable() {
@@ -586,6 +607,21 @@ public class EventPluginLoader {
       eventListeners.forEach(listener ->
           listener.handleBlockContractLogTrigger(toJsonString(trigger)));
     }
+  }
+
+  public boolean isBusy() {
+    if (useNativeQueue) {
+      return false;
+    }
+    int queueSize = 0;
+    for (IPluginEventListener listener : eventListeners) {
+      try {
+        queueSize += listener.getPendingSize();
+      } catch (AbstractMethodError error) {
+        break;
+      }
+    }
+    return queueSize >= MAX_PENDING_SIZE;
   }
 
   private String toJsonString(Object data) {
