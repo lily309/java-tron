@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Hex;
 import org.pf4j.CompoundPluginDescriptorFinder;
@@ -29,11 +31,14 @@ import org.tron.common.logsfilter.trigger.ShieldedTRC20TrackerTrigger;
 import org.tron.common.logsfilter.trigger.SolidityTrigger;
 import org.tron.common.logsfilter.trigger.TransactionLogTrigger;
 import org.tron.common.logsfilter.trigger.Trigger;
+import org.tron.common.utils.JsonUtil;
 
 @Slf4j
 public class EventPluginLoader {
 
   private static EventPluginLoader instance;
+
+  private long MAX_PENDING_SIZE = 50000;
 
   private PluginManager pluginManager = null;
 
@@ -50,6 +55,10 @@ public class EventPluginLoader {
   private List<String> justlendTokens;
 
   private String justlendRentMarket;
+
+  private int version = 0;
+
+  private long startSyncBlockNum = 0;
 
   private boolean blockLogTriggerEnable = false;
 
@@ -88,6 +97,7 @@ public class EventPluginLoader {
 
   private FilterQuery filterQuery;
 
+  @Getter
   private boolean useNativeQueue = false;
 
   public static EventPluginLoader getInstance() {
@@ -248,6 +258,10 @@ public class EventPluginLoader {
     if (Objects.isNull(config)) {
       return false;
     }
+
+    this.version = config.getVersion();
+
+    this.startSyncBlockNum = config.getStartSyncBlockNum();
 
     this.triggerConfigList = config.getTriggerConfigList();
 
@@ -453,6 +467,14 @@ public class EventPluginLoader {
     return justlendRentMarket;
   }
 
+
+  public synchronized int getVersion() {
+    return version;
+  }
+
+  public synchronized long getStartSyncBlockNum() {
+    return startSyncBlockNum;
+  }
 
   public synchronized boolean isBlockLogTriggerEnable() {
     return blockLogTriggerEnable;
@@ -679,6 +701,21 @@ public class EventPluginLoader {
     }
   }
 
+
+  public boolean isBusy() {
+    if (useNativeQueue) {
+      return false;
+    }
+    int queueSize = 0;
+    for (IPluginEventListener listener : eventListeners) {
+      try {
+        queueSize += listener.getPendingSize();
+      } catch (AbstractMethodError error) {
+        break;
+      }
+    }
+    return queueSize >= MAX_PENDING_SIZE;
+  }
 
   private String toJsonString(Object data) {
     String jsonData = "";
