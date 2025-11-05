@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Hex;
@@ -31,7 +30,6 @@ import org.tron.common.logsfilter.trigger.ShieldedTRC20TrackerTrigger;
 import org.tron.common.logsfilter.trigger.SolidityTrigger;
 import org.tron.common.logsfilter.trigger.TransactionLogTrigger;
 import org.tron.common.logsfilter.trigger.Trigger;
-import org.tron.common.utils.JsonUtil;
 
 @Slf4j
 public class EventPluginLoader {
@@ -160,7 +158,7 @@ public class EventPluginLoader {
 
   private static boolean filterContractAddress(ContractTrigger trigger, List<String> addressList) {
     addressList = addressList.stream().filter(item ->
-        org.apache.commons.lang3.StringUtils.isNotEmpty(item))
+            org.apache.commons.lang3.StringUtils.isNotEmpty(item))
         .collect(Collectors.toList());
     if (Objects.isNull(addressList) || addressList.isEmpty()) {
       return true;
@@ -193,7 +191,7 @@ public class EventPluginLoader {
       hset = new HashSet<>(((ContractEventTrigger) trigger).getTopicMap().values());
     } else if (trigger != null) {
       hset = trigger.getLogInfo().getClonedTopics()
-              .stream().map(Hex::toHexString).collect(Collectors.toSet());
+          .stream().map(Hex::toHexString).collect(Collectors.toSet());
     }
 
     for (String top : topList) {
@@ -707,6 +705,9 @@ public class EventPluginLoader {
       return false;
     }
     int queueSize = 0;
+    if (eventListeners == null || eventListeners.isEmpty()) {
+      return false;
+    }
     for (IPluginEventListener listener : eventListeners) {
       try {
         queueSize += listener.getPendingSize();
