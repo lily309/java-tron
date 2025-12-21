@@ -59,7 +59,7 @@ public class VMConfig {
 
   private static boolean ALLOW_TVM_BLOB = false;
 
-  private static boolean ALLOW_TVM_SELFDESTRUCT_RESTRICTION = false;
+  private static boolean ALLOW_TVM_SELFDESTRUCT_RESTRICTION = true;
 
   private VMConfig() {
   }

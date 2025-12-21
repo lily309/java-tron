@@ -1746,7 +1746,11 @@ public class Program {
         }
       }
 
-      this.memorySave(msg.getOutDataOffs().intValue(), out.getRight());
+      if (VMConfig.allowTvmSelfdestructRestriction()) {
+        this.memorySave(msg.getOutDataOffs().intValue(), msg.getOutDataSize().intValue(), out.getRight());
+      } else {
+        this.memorySave(msg.getOutDataOffs().intValue(), out.getRight());
+      }
     }
   }
 
