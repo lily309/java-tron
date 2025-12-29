@@ -42,6 +42,7 @@ import org.tron.core.vm.EnergyCost;
 import org.tron.core.vm.LogInfoTriggerParser;
 import org.tron.core.vm.Op;
 import org.tron.core.vm.OperationRegistry;
+import org.tron.core.vm.StateType;
 import org.tron.core.vm.VM;
 import org.tron.core.vm.VMConstant;
 import org.tron.core.vm.VMUtils;
@@ -189,6 +190,7 @@ public class VMActuator implements Actuator2 {
           throw e;
         }
 
+        program.setStateType(StateType.from(isConstantCall, blockCap));
         VM.play(program, OperationRegistry.getTable());
         result = program.getResult();
 

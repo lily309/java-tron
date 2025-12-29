@@ -62,6 +62,7 @@ import org.tron.core.vm.MessageCall;
 import org.tron.core.vm.Op;
 import org.tron.core.vm.OperationRegistry;
 import org.tron.core.vm.PrecompiledContracts;
+import org.tron.core.vm.StateType;
 import org.tron.core.vm.VM;
 import org.tron.core.vm.VMConstant;
 import org.tron.core.vm.VMUtils;
@@ -146,6 +147,9 @@ public class Program {
   @Getter
   @Setter
   private long callPenaltyEnergy;
+  @Getter
+  @Setter
+  private StateType stateType;
 
   public Program(byte[] ops, byte[] codeAddress, ProgramInvoke programInvoke,
                  InternalTransaction internalTransaction) {
@@ -806,6 +810,7 @@ public class Program {
       if (VMConfig.allowTvmCompatibleEvm()) {
         program.setContractVersion(getContractVersion());
       }
+      program.setStateType(stateType);
       VM.play(program, OperationRegistry.getTable());
       createResult = program.getResult();
       getTrace().merge(program.getTrace());
@@ -1038,6 +1043,7 @@ public class Program {
         program.setContractVersion(invoke.getDeposit()
             .getContract(codeAddress).getContractVersion());
       }
+      program.setStateType(stateType);
       VM.play(program, OperationRegistry.getTable());
       callResult = program.getResult();
 
@@ -1622,6 +1628,7 @@ public class Program {
       contract.setResult(this.result);
       contract.setConstantCall(isConstantCall());
       contract.setVmShouldEndInUs(getVmShouldEndInUs());
+      contract.setStateType(stateType);
       Pair<Boolean, byte[]> out = contract.execute(data);
 
       if (out.getLeft()) { // success
@@ -1638,6 +1645,12 @@ public class Program {
         }
       }
 
+      if (stateType.shouldCheck()) {
+        BigInteger memNeed = msg.getOutDataOffs().value().add(msg.getOutDataSize().value());
+        if (memNeed.compareTo(EnergyCost.getMEM_LIMIT()) > 0) {
+          throw Exception.notEnoughTime(Op.getNameOf(msg.getOpCode()));
+        }
+      }
       this.memorySave(msg.getOutDataOffs().intValue(), out.getRight());
     }
   }

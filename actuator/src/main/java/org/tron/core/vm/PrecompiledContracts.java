@@ -16,6 +16,7 @@ import static org.tron.common.utils.ByteUtil.parseBytes;
 import static org.tron.common.utils.ByteUtil.parseWord;
 import static org.tron.common.utils.ByteUtil.stripLeadingZeroes;
 import static org.tron.core.config.Parameter.ChainConstant.TRX_PRECISION;
+import static org.tron.core.vm.VMConstant.SIG_LENGTH;
 
 import com.google.protobuf.ByteString;
 
@@ -379,8 +380,11 @@ public class PrecompiledContracts {
     return out;
   }
 
-  private static byte[][] extractBytes32Array(DataWord[] words, int offset) {
+  private static byte[][] extractBytes32Array(DataWord[] words, int offset, boolean shouldCheck) {
     int len = words[offset].intValueSafe();
+    if (shouldCheck && len > BatchValidateSign.MAX_SIZE) {
+      throw new OutOfTimeException("CPU timeout while extracting bytes32 array");
+    }
     byte[][] bytes32Array = new byte[len][];
     for (int i = 0; i < len; i++) {
       bytes32Array[i] = words[offset + i + 1].getData();
@@ -388,15 +392,21 @@ public class PrecompiledContracts {
     return bytes32Array;
   }
 
-  private static byte[][] extractBytesArray(DataWord[] words, int offset, byte[] data) {
+  private static byte[][] extractBytesArray(DataWord[] words, int offset, byte[] data, boolean shouldCheck, int maxSize) {
     if (offset > words.length - 1) {
       return new byte[0][];
     }
     int len = words[offset].intValueSafe();
+    if (shouldCheck && len > maxSize) {
+      throw new OutOfTimeException("CPU timeout while extracting bytes array");
+    }
     byte[][] bytesArray = new byte[len][];
     for (int i = 0; i < len; i++) {
       int bytesOffset = words[offset + i + 1].intValueSafe() / WORD_SIZE;
       int bytesLen = words[offset + bytesOffset + 1].intValueSafe();
+      if (shouldCheck && bytesLen > SIG_LENGTH) {
+        throw new OutOfTimeException("CPU timeout while extracting bytes array");
+      }
       bytesArray[i] = extractBytes(data, (bytesOffset + offset + 2) * WORD_SIZE,
           bytesLen);
     }
@@ -419,6 +429,9 @@ public class PrecompiledContracts {
     @Getter
     @Setter
     private long vmShouldEndInUs;
+    @Getter
+    @Setter
+    private StateType stateType = StateType.ST_PENDING;
 
     public abstract long getEnergyForData(byte[] data);
 
@@ -945,7 +958,8 @@ public class PrecompiledContracts {
           .getInstance().isECKeyCryptoEngine(), combine);
 
       byte[][] signatures = extractBytesArray(
-          words, words[3].intValueSafe() / WORD_SIZE, rawData);
+          words, words[3].intValueSafe() / WORD_SIZE, rawData,
+          getStateType().shouldCheck(), MAX_SIZE);
 
       if (signatures.length == 0 || signatures.length > MAX_SIZE) {
         return Pair.of(true, DATA_FALSE);
@@ -1017,7 +1031,10 @@ public class PrecompiledContracts {
     public Pair<Boolean, byte[]> execute(byte[] data) {
       try {
         return doExecute(data);
+      } catch (OutOfTimeException e) {
+        throw e;
       } catch (Throwable t) {
+        logger.info("BatchValidateSign error:{}", t.getMessage());
         if (t instanceof InterruptedException){
           Thread.currentThread().interrupt();
         }
@@ -1030,9 +1047,11 @@ public class PrecompiledContracts {
       DataWord[] words = DataWord.parseArray(data);
       byte[] hash = words[0].getData();
       byte[][] signatures = extractBytesArray(
-          words, words[1].intValueSafe() / WORD_SIZE, data);
+          words, words[1].intValueSafe() / WORD_SIZE, data,
+          getStateType().shouldCheck(), MAX_SIZE);
       byte[][] addresses = extractBytes32Array(
-          words, words[2].intValueSafe() / WORD_SIZE);
+          words, words[2].intValueSafe() / WORD_SIZE,
+          getStateType().shouldCheck());
       int cnt = signatures.length;
       if (cnt == 0 || cnt > MAX_SIZE || signatures.length != addresses.length) {
         return Pair.of(true, DATA_FALSE);

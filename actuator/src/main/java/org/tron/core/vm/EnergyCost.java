@@ -1,6 +1,7 @@
 package org.tron.core.vm;
 
 import java.math.BigInteger;
+import lombok.Getter;
 import org.tron.common.runtime.vm.DataWord;
 import org.tron.core.vm.config.VMConfig;
 import org.tron.core.vm.program.Program;
@@ -23,6 +24,7 @@ public class EnergyCost {
   private static final long EXP_BYTE_ENERGY = 10;
   private static final long SHA3 = 30;
   // 3MB
+  @Getter
   private static final BigInteger MEM_LIMIT = BigInteger.valueOf(3L * 1024 * 1024);
   private static final long MEMORY = 3;
   private static final long COPY_ENERGY = 3;
