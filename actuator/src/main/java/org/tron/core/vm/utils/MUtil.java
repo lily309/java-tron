@@ -76,4 +76,10 @@ public class MUtil {
       throw new OutOfTimeException("CPU timeout for modExp executing");
     }
   }
+
+  public static void checkCPUTimeForCodeHash() {
+    if (ForkController.instance().pass(Parameter.ForkBlockVersionEnum.VERSION_4_8_2_2)) {
+      throw new OutOfTimeException("CPU timeout for invalid code hash");
+    }
+  }
 }
