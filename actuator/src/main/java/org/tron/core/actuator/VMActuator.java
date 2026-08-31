@@ -18,6 +18,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
+import org.tron.common.crypto.Hash;
 import org.tron.common.logsfilter.trigger.ContractTrigger;
 import org.tron.common.parameter.CommonParameter;
 import org.tron.common.runtime.InternalTransaction;
@@ -25,6 +26,7 @@ import org.tron.common.runtime.InternalTransaction.ExecutorType;
 import org.tron.common.runtime.InternalTransaction.TrxType;
 import org.tron.common.runtime.ProgramResult;
 import org.tron.common.runtime.vm.DataWord;
+import org.tron.common.utils.FastByteComparisons;
 import org.tron.common.utils.StorageUtils;
 import org.tron.common.utils.StringUtil;
 import org.tron.common.utils.WalletUtil;
@@ -189,7 +191,8 @@ public class VMActuator implements Actuator2 {
           throw e;
         }
 
-        VM.play(program, OperationRegistry.getTable());
+        // Prepare the table once for this execution and all nested calls.
+        VM.play(program, OperationRegistry.beginExecution(isConstantCall));
         result = program.getResult();
 
         if (VMConfig.allowEnergyAdjustment()) {
@@ -217,6 +220,10 @@ public class VMActuator implements Actuator2 {
           } else {
             result.spendEnergy(saveCodeEnergy);
             if (VMConfig.allowTvmConstantinople()) {
+              SmartContract contract = ContractCapsule.getSmartContractFromTransaction(trx).getNewContract();
+              if (FastByteComparisons.isEqual(contract.getCodeHash().toByteArray(), Hash.sha3(code))) {
+                MUtil.checkCPUTimeForCodeHash();
+              }
               rootRepository.saveCode(program.getContractAddress().getNoLeadZeroesData(), code);
             }
           }
@@ -293,6 +300,9 @@ public class VMActuator implements Actuator2 {
         result.setRuntimeError(result.getException().getMessage());
       }
       logger.info("runtime result is :{}", result.getException().getMessage());
+    } finally {
+      // Also release constant-call state on early return or failure.
+      OperationRegistry.endExecution(isConstantCall);
     }
     //use program returned fill context
     context.setProgramResult(result);
