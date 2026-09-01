@@ -330,6 +330,8 @@ public class VMActuator implements Actuator2 {
     if (contract == null) {
       throw new ContractValidateException("Cannot get CreateSmartContract from transaction");
     }
+    checkContractHashFields(contract.getNewContract());
+
     SmartContract newSmartContract;
     if (VMConfig.allowTvmCompatibleEvm()) {
       newSmartContract = contract.getNewContract().toBuilder().setVersion(1).build();
@@ -453,6 +455,12 @@ public class VMActuator implements Actuator2 {
           tokenValue);
     }
 
+  }
+
+  static void checkContractHashFields(SmartContract contract) {
+    if (!contract.getCodeHash().isEmpty() || !contract.getTrxHash().isEmpty()) {
+      MUtil.checkCPUTimeForContractHashFields();
+    }
   }
 
   /**
